@@ -13,7 +13,7 @@ export function AccountRow({
   onActiveToggle,
   onAccountingToggle,
 }: {
-  user: { id: string; name: string; email: string; role: string; isActive: boolean; canAccessAccounting: boolean };
+  user: { id: string; name: string; username: string; role: string; isActive: boolean; canAccessAccounting: boolean };
   onRoleChange: (userId: string, role: string) => Promise<void>;
   onActiveToggle: (userId: string, isActive: boolean) => Promise<void>;
   onAccountingToggle: (userId: string, canAccessAccounting: boolean) => Promise<void>;
@@ -28,8 +28,7 @@ export function AccountRow({
         <div className="flex items-center gap-2">
           <StatusDot active={user.isActive} />
           <div>
-            <p className="text-sm text-foreground">{user.name}</p>
-            <p className="text-xs text-muted">{user.email}</p>
+            <p className="text-sm text-foreground">@{user.username}</p>
           </div>
         </div>
 

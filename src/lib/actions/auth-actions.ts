@@ -13,13 +13,13 @@ export async function authenticate(
 ): Promise<string | undefined> {
   try {
     await signIn("credentials", {
-      email: formData.get("email"),
+      username: formData.get("username"),
       password: formData.get("password"),
       redirectTo: (formData.get("callbackUrl") as string) || "/",
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      return "Email ou mot de passe incorrect.";
+      return "Pseudo ou mot de passe incorrect.";
     }
     throw error;
   }

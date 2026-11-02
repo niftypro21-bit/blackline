@@ -5,10 +5,10 @@ import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { logCreate } from "@/lib/activity";
+import { usernameSchema } from "@/lib/form";
 
 const setupSchema = z.object({
-  name: z.string().trim().min(1, "Nom requis"),
-  email: z.string().trim().email("Email invalide"),
+  username: usernameSchema,
   password: z.string().min(8, "8 caracteres minimum"),
 });
 
@@ -24,8 +24,7 @@ export async function createOwnerAccount(
   }
 
   const parsed = setupSchema.safeParse({
-    name: formData.get("name"),
-    email: formData.get("email"),
+    username: formData.get("username"),
     password: formData.get("password"),
   });
   if (!parsed.success) {
@@ -40,8 +39,8 @@ export async function createOwnerAccount(
     }
     return tx.user.create({
       data: {
-        name: parsed.data.name,
-        email: parsed.data.email,
+        name: parsed.data.username,
+        username: parsed.data.username,
         passwordHash,
         role: "OWNER",
         isActive: true,

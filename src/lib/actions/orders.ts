@@ -8,36 +8,48 @@ import { canApproveOrders, ForbiddenError } from "@/lib/permissions";
 import { logCreate, logAction } from "@/lib/activity";
 import { notifyDiscord } from "@/lib/discord";
 
-const reservationSchema = z.object({
-  catalogItemId: z.string().trim().min(1),
-  quantity: z.coerce.number().int().min(1, "Quantite invalide"),
-});
+const cartSchema = z
+  .array(
+    z.object({
+      catalogItemId: z.string().trim().min(1),
+      quantity: z.coerce.number().int().min(1),
+    }),
+  )
+  .min(1, "Panier vide");
 
-export async function createReservation(
-  _prevState: string | undefined,
-  formData: FormData,
+// Cree une commande par article du panier, en une seule notification Discord groupee.
+export async function createCartOrders(
+  items: { catalogItemId: string; quantity: number }[],
 ): Promise<string | undefined> {
   const session = await requireSession();
-  const parsed = reservationSchema.safeParse({
-    catalogItemId: formData.get("catalogItemId"),
-    quantity: formData.get("quantity"),
-  });
-  if (!parsed.success) return parsed.error.issues[0]?.message ?? "Donnees invalides.";
+  const parsed = cartSchema.safeParse(items);
+  if (!parsed.success) return "Panier invalide.";
 
-  const item = await prisma.catalogItem.findUnique({ where: { id: parsed.data.catalogItemId } });
-  if (!item || item.archived) return "Article indisponible.";
-  if (parsed.data.quantity > item.quantity) return "Quantite demandee superieure au stock disponible.";
-
-  const order = await prisma.order.create({
-    data: {
-      catalogItemId: item.id,
-      quantity: parsed.data.quantity,
-      requestedById: session.user.id,
-    },
+  const catalogItems = await prisma.catalogItem.findMany({
+    where: { id: { in: parsed.data.map((i) => i.catalogItemId) } },
   });
-  await logCreate("ORDER", order.id, `${parsed.data.quantity} x ${item.name}`);
+  const byId = new Map(catalogItems.map((item) => [item.id, item]));
+
+  for (const line of parsed.data) {
+    const item = byId.get(line.catalogItemId);
+    if (!item || item.archived) return "Un article du panier n'est plus disponible.";
+    if (line.quantity > item.quantity) return `Stock insuffisant pour "${item.name}".`;
+  }
+
+  const summaryLines: string[] = [];
+  await prisma.$transaction(
+    parsed.data.map((line) => {
+      const item = byId.get(line.catalogItemId)!;
+      summaryLines.push(`${line.quantity} x ${item.name}`);
+      return prisma.order.create({
+        data: { catalogItemId: line.catalogItemId, quantity: line.quantity, requestedById: session.user.id },
+      });
+    }),
+  );
+
+  await logCreate("ORDER", "CART", summaryLines.join(", "));
   await notifyDiscord(
-    `Nouvelle commande : ${parsed.data.quantity} x ${item.name} (demandee par ${session.user.name ?? session.user.email})`,
+    `Nouvelle commande (marche noir) de ${session.user.name} :\n- ${summaryLines.join("\n- ")}`,
   );
 
   revalidatePath("/commandes");

@@ -10,21 +10,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
+        username: { label: "Pseudo", type: "text" },
         password: { label: "Mot de passe", type: "password" },
       },
       authorize: async (credentials) => {
-        const email = credentials?.email as string | undefined;
+        const username = credentials?.username as string | undefined;
         const password = credentials?.password as string | undefined;
-        if (!email || !password) return null;
+        if (!username || !password) return null;
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({ where: { username } });
         if (!user || !user.isActive) return null;
 
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
-        return { id: user.id, name: user.name, email: user.email, role: user.role as UserRole };
+        return { id: user.id, name: user.name, role: user.role as UserRole };
       },
     }),
   ],

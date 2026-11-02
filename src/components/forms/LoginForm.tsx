@@ -11,8 +11,8 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="callbackUrl" value={callbackUrl ?? "/"} />
-      <Field label="Email" htmlFor="email">
-        <Input id="email" name="email" type="email" required autoFocus autoComplete="email" />
+      <Field label="Pseudo" htmlFor="username">
+        <Input id="username" name="username" type="text" required autoFocus autoComplete="username" />
       </Field>
       <Field label="Mot de passe" htmlFor="password">
         <Input

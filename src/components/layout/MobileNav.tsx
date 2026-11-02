@@ -10,7 +10,7 @@ function navItems(user: NavUser) {
   const items = [
     { href: "/", label: "Tableau de bord" },
     { href: "/messages", label: "Messages" },
-    { href: "/inventaire", label: "Inventaire" },
+    { href: "/inventaire", label: "Marche noir" },
     { href: "/commandes", label: "Commandes" },
     { href: "/rendez-vous", label: "Rendez-vous" },
   ];

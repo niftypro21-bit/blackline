@@ -10,11 +10,8 @@ export function SetupForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <Field label="Nom" htmlFor="name">
-        <Input id="name" name="name" type="text" required autoFocus autoComplete="name" />
-      </Field>
-      <Field label="Email" htmlFor="email">
-        <Input id="email" name="email" type="email" required autoComplete="email" />
+      <Field label="Pseudo" htmlFor="username">
+        <Input id="username" name="username" type="text" required autoFocus autoComplete="username" />
       </Field>
       <Field label="Mot de passe" htmlFor="password">
         <Input

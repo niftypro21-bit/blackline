@@ -18,12 +18,6 @@ export default async function LoginPage({
         <div className="mt-6">
           <LoginForm callbackUrl={callbackUrl} />
         </div>
-        <p className="mt-6 text-center text-xs text-muted/70">
-          Premier lancement ?{" "}
-          <a href="/setup" className="text-accent hover:underline">
-            Creer le compte proprietaire
-          </a>
-        </p>
       </div>
     </main>
   );

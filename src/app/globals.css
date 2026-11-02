@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0b;
+  --panel: #16161a;
+  --panel-raised: #1c1c21;
+  --border: #27272d;
+  --border-subtle: #1c1c21;
+  --foreground: #e8e6df;
+  --muted: #9b988f;
+  --accent: #b8964e;
+  --accent-hover: #c9a860;
+  --accent-soft: rgba(184, 150, 78, 0.12);
+
+  --reliability-confirmed: #5f9463;
+  --reliability-probable: #b8964e;
+  --reliability-unverified: #6b6b70;
+  --reliability-contradictory: #a1493f;
+
+  --visibility-private: #6b6b70;
+  --visibility-shared: #5f7f94;
+  --visibility-restricted: #b8964e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-panel: var(--panel);
+  --color-panel-raised: var(--panel-raised);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-reliability-confirmed: var(--reliability-confirmed);
+  --color-reliability-probable: var(--reliability-probable);
+  --color-reliability-unverified: var(--reliability-unverified);
+  --color-reliability-contradictory: var(--reliability-contradictory);
+
+  --color-visibility-private: var(--visibility-private);
+  --color-visibility-shared: var(--visibility-shared);
+  --color-visibility-restricted: var(--visibility-restricted);
+
+  --font-display: var(--font-dossier-display);
+  --font-sans: var(--font-dossier-sans);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-dossier-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--foreground);
+}
+
+* {
+  border-color: var(--border);
+}
+
+.font-display {
+  font-family: var(--font-dossier-display), "Courier New", ui-monospace, monospace;
+  letter-spacing: 0.02em;
+}
+
+/* scrollbars sobres, coherents avec le theme sombre */
+* {
+  scrollbar-color: var(--border) var(--panel);
+  scrollbar-width: thin;
+}

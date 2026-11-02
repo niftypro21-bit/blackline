@@ -1,0 +1,334 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// role: OWNER | COLLABORATOR (COLLABORATOR reserve au partage futur)
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("OWNER")
+  createdAt    DateTime @default(now())
+
+  activityLogs ActivityLog[]
+}
+
+// category: MC_MEMBER | PROSPECT | CIVIL | CONTACT | ENTERPRISE | UNKNOWN | OTHER
+// reliability / visibility: voir constants.ts (memes valeurs partout)
+model Person {
+  id             String        @id @default(cuid())
+  firstName      String
+  lastName       String?
+  nickname       String?
+  photoUrl       String?
+  profession     String?
+  phone          String?
+  category       String        @default("CIVIL")
+  statusNote     String?
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  description    String?
+  reliability    String?
+  visibility     String        @default("PRIVATE")
+  archived       Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  mcMember           MCMember?
+  vehiclesOwned      Vehicle[]
+  observations       Observation[]        @relation("ObservationPerson")
+  observationsSeen   ObservationWitness[]
+  eventParticipants  EventParticipant[]
+  journalMentions    JournalEntryPerson[]
+  sponsoredProspects MCMember[]           @relation("MCSponsor")
+  sources            Source[]
+
+  @@index([category])
+  @@index([archived])
+}
+
+// grade : libre (Prospect, Membre, Officier, President...) defini par l'utilisateur, pas un enum fige
+model MCMember {
+  id          String    @id @default(cuid())
+  personId    String    @unique
+  person      Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  grade       String?
+  joinDate    DateTime?
+  sponsorId   String?
+  sponsor     Person?   @relation("MCSponsor", fields: [sponsorId], references: [id])
+  patchStatus String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Vehicle {
+  id            String   @id @default(cuid())
+  make          String?
+  model         String?
+  color         String?
+  plate         String?
+  ownerPersonId String?
+  ownerPerson   Person?  @relation(fields: [ownerPersonId], references: [id])
+  ownerNote     String? // proprietaire suppose, si pas encore lie a une fiche
+  photoUrl      String?
+  description   String?
+  visibility    String   @default("PRIVATE")
+  archived      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  observations Observation[]
+
+  @@index([plate])
+  @@index([archived])
+}
+
+// type: ENTERPRISE | GROUP | GANG_MC | PUBLIC_SERVICE | UNKNOWN | OTHER
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   @default("OTHER")
+  description String?
+  trustLevel  String?
+  visibility  String   @default("PRIVATE")
+  archived    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members Person[]
+
+  @@index([archived])
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  category    String?
+  description String?
+  lat         Float?
+  lng         Float?
+  visibility  String   @default("PRIVATE")
+  archived    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  observations Observation[]
+  events       Event[]
+
+  @@index([archived])
+}
+
+// reliability: CONFIRMED | PROBABLE | UNVERIFIED | CONTRADICTORY
+model Observation {
+  id          String    @id @default(cuid())
+  occurredAt  DateTime
+  locationId  String?
+  location    Location? @relation(fields: [locationId], references: [id])
+  personId    String?
+  person      Person?   @relation("ObservationPerson", fields: [personId], references: [id])
+  vehicleId   String?
+  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id])
+  description String
+  sourceId    String?
+  sourceRef   Source?   @relation(fields: [sourceId], references: [id])
+  evidenceUrl String?
+  reliability String    @default("UNVERIFIED")
+  notes       String?
+  visibility  String    @default("PRIVATE")
+  archived    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  witnesses ObservationWitness[]
+
+  @@index([occurredAt])
+  @@index([archived])
+}
+
+model ObservationWitness {
+  id            String      @id @default(cuid())
+  observationId String
+  observation   Observation @relation(fields: [observationId], references: [id], onDelete: Cascade)
+  personId      String
+  person        Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([observationId, personId])
+}
+
+// fromType/toType: PERSON | VEHICLE | ORGANIZATION | LOCATION
+// relationType: OWNS | WORKS_FOR | FREQUENTS | KNOWS | PART_OF | ALLY_OF | RIVAL_OF | OTHER
+model Relationship {
+  id           String   @id @default(cuid())
+  fromType     String
+  fromId       String
+  toType       String
+  toId         String
+  relationType String
+  label        String?
+  reliability  String   @default("UNVERIFIED")
+  notes        String?
+  visibility   String   @default("PRIVATE")
+  createdAt    DateTime @default(now())
+
+  @@index([fromType, fromId])
+  @@index([toType, toId])
+}
+
+// category: MEETING | APPOINTMENT | EVENT | REMINDER | TASK
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  category    String    @default("APPOINTMENT")
+  startAt     DateTime
+  endAt       DateTime?
+  locationId  String?
+  location    Location? @relation(fields: [locationId], references: [id])
+  description String?
+  done        Boolean   @default(false)
+  visibility  String    @default("PRIVATE")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  participants EventParticipant[]
+
+  @@index([startAt])
+}
+
+model EventParticipant {
+  id       String @id @default(cuid())
+  eventId  String
+  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  personId String
+  person   Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, personId])
+}
+
+// entityType/entityId: null = note personnelle autonome ; sinon liee a une fiche (PERSON, VEHICLE, ...)
+model Note {
+  id         String   @id @default(cuid())
+  title      String?
+  content    String
+  entityType String?
+  entityId   String?
+  visibility String   @default("PRIVATE")
+  archived   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([entityType, entityId])
+}
+
+model JournalEntry {
+  id             String   @id @default(cuid())
+  date           DateTime
+  mood           String?
+  content        String
+  thingsLearned  String?
+  thingsToVerify String?
+  archived       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  peopleMet    JournalEntryPerson[]
+  tasksSpawned Task[]
+
+  @@index([date])
+}
+
+model JournalEntryPerson {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  personId       String
+  person         Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([journalEntryId, personId])
+}
+
+model Task {
+  id             String        @id @default(cuid())
+  title          String
+  dueDate        DateTime?
+  done           Boolean       @default(false)
+  journalEntryId String?
+  journalEntry   JournalEntry? @relation(fields: [journalEntryId], references: [id])
+  entityType     String?
+  entityId       String?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([done])
+}
+
+model Tag {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  color String?
+
+  links TagLink[]
+}
+
+model TagLink {
+  id         String @id @default(cuid())
+  tagId      String
+  tag        Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  entityType String
+  entityId   String
+
+  @@unique([tagId, entityType, entityId])
+  @@index([entityType, entityId])
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  url        String
+  filename   String?
+  mimeType   String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+// type: OBSERVATION_PERSONNELLE | INFORMANT | DOCUMENT | RUMEUR | AUTRE
+model Source {
+  id                 String   @id @default(cuid())
+  name               String
+  type               String   @default("AUTRE")
+  personId           String?
+  person             Person?  @relation(fields: [personId], references: [id])
+  reliabilityDefault String   @default("UNVERIFIED")
+  notes              String?
+  createdAt          DateTime @default(now())
+
+  observations Observation[]
+}
+
+// action: CREATE | UPDATE | DELETE | ARCHIVE | RESTORE
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  field      String?
+  oldValue   String?
+  newValue   String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

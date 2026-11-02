@@ -85,27 +85,43 @@ Tout est local : le fichier SQLite (`prisma/dev.db` ou le chemin defini dans
 `DATABASE_URL`). Sauvegarder ce fichier suffit a sauvegarder l'integralite de la
 tablette.
 
-## 6. Hebergement (Railway, HTTPS inclus)
+## 6. Hebergement (Vercel + Turso, HTTPS inclus)
 
-Le site tourne tel quel sur [Railway](https://railway.app) — aucune modification de
-code necessaire, Railway fournit un disque persistant pour le fichier SQLite et le
-HTTPS est automatique.
+Vercel n'a pas de disque persistant : le fichier SQLite local est remplace par une
+base [Turso](https://turso.tech) (service hebergeur du meme moteur SQLite, gratuit
+en petit volume). Le code supporte deja les deux modes (`src/lib/prisma.ts`) : en
+local, rien ne change ; en production, les variables `TURSO_DATABASE_URL` et
+`TURSO_AUTH_TOKEN` activent automatiquement Turso.
 
-1. Poussez ce depot sur GitHub (prive ou public).
-2. Sur railway.app, creez un compte (gratuit, via GitHub de preference), puis
-   **New Project → Deploy from GitHub repo** et choisissez ce depot.
-3. Dans l'onglet **Variables** du service, ajoutez :
-   - `AUTH_SECRET` — une valeur aleatoire (voir §1).
-   - `DATABASE_URL` — `file:/data/production.db`
-4. Dans l'onglet **Volumes**, ajoutez un volume monte sur `/data` (quelques centaines
-   de Mo suffisent largement pour ce type de site).
-5. Railway detecte automatiquement Next.js, lance `npm run build` puis
-   `npm run start` (qui applique les migrations Prisma avant de demarrer le serveur).
-6. Une fois le deploiement termine, Railway fournit une URL en HTTPS du type
-   `https://<nom-du-projet>.up.railway.app`. Un nom de domaine personnel peut etre
-   branche plus tard depuis l'onglet **Settings → Domains** du service.
-7. Ouvrez `/setup` sur cette URL pour creer le compte proprietaire — exactement comme
+1. **Creer la base Turso** : compte gratuit sur turso.tech, puis dans leur dashboard
+   (ou via leur CLI) creez une base (ex. `blackline`) et recuperez :
+   - son URL de connexion (commence par `libsql://...`)
+   - un jeton d'acces ("Create Token")
+2. **Initialiser le schema sur Turso** (une seule fois) : ouvrez le "Shell" de la base
+   depuis le dashboard Turso et executez, dans l'ordre, le contenu de chaque fichier
+   `prisma/migrations/*/migration.sql` de ce depot (deux fichiers actuellement :
+   `20261102120244_init` puis `20261102123711_username_login`). Copier-coller le SQL
+   suffit, pas besoin d'outil supplementaire.
+3. **Deployer sur Vercel** : compte gratuit sur vercel.com (connexion via GitHub),
+   **Add New → Project**, choisissez ce depot GitHub. Avant de cliquer "Deploy",
+   ouvrez **Environment Variables** et ajoutez :
+   - `AUTH_SECRET` — une valeur aleatoire (voir §1)
+   - `TURSO_DATABASE_URL` — l'URL recuperee a l'etape 1
+   - `TURSO_AUTH_TOKEN` — le jeton recupere a l'etape 1
+4. Cliquez **Deploy**. Vercel detecte Next.js automatiquement. Une fois termine, il
+   fournit une URL HTTPS du type `https://<projet>.vercel.app` (domaine personnel
+   possible ensuite depuis **Settings → Domains**).
+5. Ouvrez `/setup` sur cette URL pour creer le compte proprietaire — exactement comme
    en local, aucun identifiant par defaut.
+
+Toute future modification du schema (`prisma/schema.prisma`) demandera de generer la
+migration en local (`npm run db:migrate`) puis de rejouer le nouveau fichier SQL sur
+Turso de la meme maniere qu'a l'etape 2.
+
+**Alternative** : [Railway](https://railway.app) permettrait de garder le fichier
+SQLite tel quel (disque persistant, zero changement de code) via `DATABASE_URL`, mais
+les inscriptions y sont temporairement fermees (incident du 21 octobre). A retenter
+plus tard si plus simple.
 
 L'hebergement Cloudflare Pages/Workers + D1 evoque dans le cahier des charges
 d'origine reste une alternative possible mais demanderait une adaptation

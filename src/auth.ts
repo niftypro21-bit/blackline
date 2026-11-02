@@ -7,6 +7,9 @@ import type { UserRole } from "@/lib/constants";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
+  // Necessaire derriere un hebergeur dont le domaine n'est connu qu'au runtime
+  // (Railway, Render...) : sans ca, NextAuth refuse les requetes avec "UntrustedHost".
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {

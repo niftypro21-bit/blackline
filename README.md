@@ -85,9 +85,28 @@ Tout est local : le fichier SQLite (`prisma/dev.db` ou le chemin defini dans
 `DATABASE_URL`). Sauvegarder ce fichier suffit a sauvegarder l'integralite de la
 tablette.
 
-## 6. Hebergement
+## 6. Hebergement (Railway, HTTPS inclus)
 
-Ce depot reste sur Prisma + SQLite pour un lancement local simple. L'hebergement
-Cloudflare Pages/Workers + D1 (et Supabase Auth) evoque dans le cahier des charges
-n'a pas ete mis en place dans cette version — cela demanderait une passe dediee
-(adaptateur Prisma D1, configuration Workers) avant un deploiement reel.
+Le site tourne tel quel sur [Railway](https://railway.app) — aucune modification de
+code necessaire, Railway fournit un disque persistant pour le fichier SQLite et le
+HTTPS est automatique.
+
+1. Poussez ce depot sur GitHub (prive ou public).
+2. Sur railway.app, creez un compte (gratuit, via GitHub de preference), puis
+   **New Project → Deploy from GitHub repo** et choisissez ce depot.
+3. Dans l'onglet **Variables** du service, ajoutez :
+   - `AUTH_SECRET` — une valeur aleatoire (voir §1).
+   - `DATABASE_URL` — `file:/data/production.db`
+4. Dans l'onglet **Volumes**, ajoutez un volume monte sur `/data` (quelques centaines
+   de Mo suffisent largement pour ce type de site).
+5. Railway detecte automatiquement Next.js, lance `npm run build` puis
+   `npm run start` (qui applique les migrations Prisma avant de demarrer le serveur).
+6. Une fois le deploiement termine, Railway fournit une URL en HTTPS du type
+   `https://<nom-du-projet>.up.railway.app`. Un nom de domaine personnel peut etre
+   branche plus tard depuis l'onglet **Settings → Domains** du service.
+7. Ouvrez `/setup` sur cette URL pour creer le compte proprietaire — exactement comme
+   en local, aucun identifiant par defaut.
+
+L'hebergement Cloudflare Pages/Workers + D1 evoque dans le cahier des charges
+d'origine reste une alternative possible mais demanderait une adaptation
+supplementaire (adaptateur Prisma D1) non faite dans cette version.

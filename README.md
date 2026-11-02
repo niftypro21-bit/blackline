@@ -1,12 +1,12 @@
-# Blackbook
+# BLACKLINE
 
-Carnet numerique personnel pour un personnage GTA RP (Prospect dans un Motorcycle
-Club). Outil **prive et hors-RP** : ce n'est ni un site officiel du MC, ni un outil de
-gestion de serveur, ni une base de donnees sur de vraies personnes — toutes les fiches
-sont fictives, issues du contexte de jeu de role.
+Tablette privee de gestion pour une communaute GTA RP (MC/crew fictif). **Toutes les
+donnees, membres, articles et montants sont fictifs** et servent uniquement au jeu de
+role — ce site n'est ni un outil de collecte de donnees reelles, ni relie a un vrai
+service financier.
 
 **Stack :** Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 + Prisma (SQLite) +
-NextAuth v5 (credentials/JWT) + Zod.
+NextAuth v5 (credentials/JWT) + Zod + bcryptjs.
 
 ## 1. Lancer le site en local
 
@@ -20,45 +20,74 @@ cp .env.example .env
 Editez `.env` :
 - `DATABASE_URL` — chemin du fichier SQLite (un chemin absolu est recommande sous
   Windows, voir le commentaire dans `.env.example`).
-- `AUTH_SECRET` — une valeur aleatoire (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`).
-- `BLACKBOOK_OWNER_*` — l'email/mot de passe du compte proprietaire, cree au seed.
+- `AUTH_SECRET` — une valeur aleatoire :
+  `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+- `DISCORD_WEBHOOK_URL` — optionnel, peut aussi (et de preference) etre configure
+  depuis l'interface une fois connecte (voir §4). Le site fonctionne normalement sans.
 
 Puis :
 
 ```bash
 npm run db:migrate   # cree la base SQLite et applique le schema
-npm run db:seed      # cree le compte OWNER + les tags par defaut
 npm run dev           # http://localhost:3000
 ```
 
-Aucune inscription publique n'existe : seul le compte seede peut se connecter.
+**Aucun identifiant n'est preconfigure.** Au premier lancement, ouvrez
+`http://localhost:3000/setup` pour creer le compte proprietaire — cette page se
+desactive automatiquement (redirection vers `/login`) dès qu'un compte existe.
 
 ## 2. Scripts
 
 - `npm run dev` / `npm run build` / `npm run start`
 - `npm run db:migrate` — nouvelle migration Prisma
-- `npm run db:seed` — recree le compte OWNER + tags par defaut (idempotent)
+- `npm run db:seed` — initialise uniquement la ligne de parametres (aucun compte de
+  demonstration n'est jamais cree)
 - `npm run db:studio` — explorateur de donnees Prisma Studio
 - `npm run lint`
 
-## 3. Architecture
+## 3. Fonctionnement
 
-- `prisma/schema.prisma` — modele de donnees (Person, Vehicle, Organization, Location,
-  Observation, Relationship, Event, Note, JournalEntry, Task, Tag, Attachment, Source,
-  ActivityLog...).
-- `src/lib/actions/` — Server Actions (une par domaine), validees avec Zod.
-- `src/lib/dossier.ts` — agrege notes/tags/pieces jointes/historique/relations pour
-  n'importe quelle fiche (pattern polymorphe `entityType` + `entityId`).
-- `src/lib/permissions.ts` — regles de visibilite (`PRIVATE` / `SHARED` / `RESTRICTED`)
-  et de role (`OWNER` / `COLLABORATOR`), pretes pour un futur partage a plusieurs
-  utilisateurs sans migration de schema.
-- `src/components/graph/RelationshipGraph.tsx` — graphe de relations en SVG (`d3-force`
-  pour le calcul de layout uniquement).
-- `storage/uploads/` — fichiers uploades (photos, preuves), servis uniquement via la
-  route protegee `/api/files/[...path]` (verification de session).
+- **Comptes & roles** (`/administration/comptes`, proprietaire uniquement) : creation,
+  changement de role (Administrateur/Membre), desactivation/reactivation,
+  reinitialisation de mot de passe, attribution de la permission comptabilite.
+- **Groupes & salons** (`/administration/groupes`, proprietaire uniquement) : creation/
+  suppression de groupes et de salons, matrice d'acces par compte. Un compte ne voit
+  que les groupes/salons auxquels il a explicitement acces (le proprietaire voit tout).
+- **Messages** (`/messages`) : conversation persistante par salon, strictement isolee
+  par groupe.
+- **Inventaire** (`/inventaire`) : catalogue d'articles fictifs (prix/stock) gere par le
+  proprietaire ; les membres y creent des reservations (impossible de reserver plus que
+  le stock disponible).
+- **Commandes** (`/commandes`) : file d'approbation pour les administrateurs/
+  proprietaire ; le stock n'est deduit qu'une seule fois, a l'approbation.
+- **Rendez-vous** (`/rendez-vous`) : proposes et visibles par groupe uniquement.
+- **Comptabilite** (`/comptabilite`) : reservee au proprietaire, ou a un administrateur
+  auquel le proprietaire a explicitement accorde l'acces.
+- **Notifications Discord** (`/administration/parametres`) : champ serveur uniquement,
+  jamais renvoye au navigateur une fois enregistre ; sans configuration, le site
+  continue de fonctionner normalement (aucune erreur).
 
-## 4. Sauvegarde des donnees
+## 4. Architecture
+
+- `prisma/schema.prisma` — User/Settings/Group/GroupMember/Channel/ChannelMember/
+  Message/CatalogItem/Order/Appointment/AccountingEntry/ActivityLog.
+- `src/lib/access.ts` — regles d'acces aux groupes/salons (le proprietaire bypass les
+  tables d'acces, les autres roles sont filtres par `GroupMember`/`ChannelMember`).
+- `src/lib/permissions.ts` / `src/lib/session.ts` — garde-fous de role verifies **cote
+  serveur** dans chaque Server Action (jamais seulement caches dans l'interface).
+- `src/lib/discord.ts` / `src/lib/settings.ts` — notification Discord best-effort,
+  jamais bloquante, URL jamais journalisee ni exposee au client.
+- `src/lib/activity.ts` — journal d'activite (qui a fait quoi, quand).
+
+## 5. Sauvegarde des donnees
 
 Tout est local : le fichier SQLite (`prisma/dev.db` ou le chemin defini dans
-`DATABASE_URL`) et le dossier `storage/uploads/`. Sauvegarder ces deux emplacements
-suffit a sauvegarder l'intégralité du carnet.
+`DATABASE_URL`). Sauvegarder ce fichier suffit a sauvegarder l'integralite de la
+tablette.
+
+## 6. Hebergement
+
+Ce depot reste sur Prisma + SQLite pour un lancement local simple. L'hebergement
+Cloudflare Pages/Workers + D1 (et Supabase Auth) evoque dans le cahier des charges
+n'a pas ete mis en place dans cette version — cela demanderait une passe dediee
+(adaptateur Prisma D1, configuration Workers) avant un deploiement reel.

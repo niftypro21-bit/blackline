@@ -1,33 +1,33 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 
-const NAV = [
-  { href: "/", label: "Tableau de bord" },
-  { href: "/annuaire", label: "Annuaire" },
-  { href: "/vehicules", label: "Vehicules" },
-  { href: "/organisations", label: "Organisations" },
-  { href: "/lieux", label: "Lieux" },
-  { href: "/observations", label: "Observations" },
-  { href: "/relations", label: "Relations" },
-  { href: "/journal", label: "Journal" },
-  { href: "/agenda", label: "Agenda" },
-  { href: "/mc", label: "MC" },
-  { href: "/recherche", label: "Recherche" },
-  { href: "/archives", label: "Archives" },
-];
+type NavUser = { name: string; isOwner: boolean; showAccounting: boolean };
 
-export function Sidebar({ userName }: { userName: string }) {
+function navItems(user: NavUser) {
+  const items = [
+    { href: "/", label: "Tableau de bord" },
+    { href: "/messages", label: "Messages" },
+    { href: "/inventaire", label: "Inventaire" },
+    { href: "/commandes", label: "Commandes" },
+    { href: "/rendez-vous", label: "Rendez-vous" },
+  ];
+  if (user.showAccounting) items.push({ href: "/comptabilite", label: "Comptabilite" });
+  if (user.isOwner) items.push({ href: "/administration", label: "Administration" });
+  return items;
+}
+
+export function Sidebar({ user }: { user: NavUser }) {
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-panel">
       <div className="border-b border-border-subtle px-5 py-5">
-        <p className="font-display text-lg tracking-widest text-accent">BLACKBOOK</p>
+        <p className="font-display text-lg tracking-widest text-accent glow-text">BLACKLINE</p>
         <p className="mt-1 text-xs text-muted">
-          Carnet personnel — usage prive, hors-RP. Pas un outil officiel du MC.
+          Tablette de gestion — communaute fictive, usage RP uniquement.
         </p>
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="flex flex-col gap-0.5">
-          {NAV.map((item) => (
+          {navItems(user).map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}
@@ -40,7 +40,7 @@ export function Sidebar({ userName }: { userName: string }) {
         </ul>
       </nav>
       <div className="border-t border-border-subtle px-5 py-4">
-        <p className="truncate text-xs text-muted">{userName}</p>
+        <p className="truncate text-xs text-muted">{user.name}</p>
         <SignOutButton />
       </div>
     </aside>

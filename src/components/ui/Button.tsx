@@ -6,7 +6,7 @@ const base =
 const variants = {
   primary: "border border-accent/50 bg-accent-soft text-accent hover:border-accent",
   ghost: "border border-border text-muted hover:text-foreground hover:border-foreground/30",
-  danger: "border border-reliability-contradictory/40 text-reliability-contradictory hover:border-reliability-contradictory",
+  danger: "border border-status-refused/40 text-status-refused hover:border-status-refused",
 };
 
 type Variant = keyof typeof variants;

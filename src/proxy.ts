@@ -5,6 +5,12 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
 
+  // /setup gere lui-meme sa propre verification (actif uniquement si aucun compte
+  // n'existe encore) ; on ne peut pas interroger la base ici sans alourdir chaque requete.
+  if (pathname === "/setup") {
+    return NextResponse.next();
+  }
+
   if (pathname === "/login") {
     if (isLoggedIn) {
       return NextResponse.redirect(new URL("/", req.nextUrl));

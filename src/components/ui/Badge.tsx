@@ -1,11 +1,5 @@
 import { clsx } from "clsx";
-import {
-  labelFor,
-  RELIABILITIES,
-  VISIBILITIES,
-  type Reliability,
-  type Visibility,
-} from "@/lib/constants";
+import { labelFor, ORDER_STATUSES, USER_ROLES, type OrderStatus, type UserRole } from "@/lib/constants";
 
 export function Badge({
   children,
@@ -31,35 +25,35 @@ export function Badge({
   );
 }
 
-const RELIABILITY_DOT: Record<Reliability, string> = {
-  CONFIRMED: "bg-reliability-confirmed",
-  PROBABLE: "bg-reliability-probable",
-  UNVERIFIED: "bg-reliability-unverified",
-  CONTRADICTORY: "bg-reliability-contradictory",
+const ORDER_STATUS_DOT: Record<OrderStatus, string> = {
+  EN_ATTENTE: "bg-status-pending",
+  APPROUVEE: "bg-status-approved",
+  REFUSEE: "bg-status-refused",
 };
 
-export function ReliabilityBadge({ value }: { value: Reliability | null | undefined }) {
-  const reliability = value ?? "UNVERIFIED";
+export function OrderStatusBadge({ value }: { value: OrderStatus | string }) {
+  const status = value as OrderStatus;
   return (
     <Badge>
-      <span className={clsx("h-1.5 w-1.5 rounded-full", RELIABILITY_DOT[reliability])} />
-      {labelFor(RELIABILITIES, reliability)}
+      <span className={clsx("h-1.5 w-1.5 rounded-full", ORDER_STATUS_DOT[status] ?? "bg-muted")} />
+      {labelFor(ORDER_STATUSES, status)}
     </Badge>
   );
 }
 
-const VISIBILITY_ICON: Record<Visibility, string> = {
-  PRIVATE: "\u{1F512}",
-  SHARED: "\u{1F465}",
-  RESTRICTED: "\u{26A0}",
-};
+export function RoleBadge({ value }: { value: UserRole | string }) {
+  const role = value as UserRole;
+  return <Badge tone={role === "OWNER" ? "accent" : "default"}>{labelFor(USER_ROLES, role)}</Badge>;
+}
 
-export function VisibilityBadge({ value }: { value: Visibility | null | undefined }) {
-  const visibility = value ?? "PRIVATE";
+export function StatusDot({ active }: { active: boolean }) {
   return (
-    <Badge>
-      <span aria-hidden>{VISIBILITY_ICON[visibility]}</span>
-      {labelFor(VISIBILITIES, visibility)}
-    </Badge>
+    <span
+      className={clsx(
+        "inline-flex h-2 w-2 rounded-full",
+        active ? "bg-status-approved" : "bg-status-refused",
+      )}
+      aria-hidden
+    />
   );
 }

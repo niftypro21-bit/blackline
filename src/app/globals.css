@@ -1,25 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0b;
-  --panel: #16161a;
-  --panel-raised: #1c1c21;
-  --border: #27272d;
-  --border-subtle: #1c1c21;
-  --foreground: #e8e6df;
-  --muted: #9b988f;
-  --accent: #b8964e;
-  --accent-hover: #c9a860;
-  --accent-soft: rgba(184, 150, 78, 0.12);
+  --background: #050a07;
+  --panel: #0a130d;
+  --panel-raised: #0f1a12;
+  --border: #1c3324;
+  --border-subtle: #122218;
+  --foreground: #d7ffe0;
+  --muted: #5f9a72;
+  --accent: #39ff6a;
+  --accent-hover: #6dffa0;
+  --accent-soft: rgba(57, 255, 106, 0.12);
 
-  --reliability-confirmed: #5f9463;
-  --reliability-probable: #b8964e;
-  --reliability-unverified: #6b6b70;
-  --reliability-contradictory: #a1493f;
-
-  --visibility-private: #6b6b70;
-  --visibility-shared: #5f7f94;
-  --visibility-restricted: #b8964e;
+  --status-pending: #c9b24e;
+  --status-approved: #39ff6a;
+  --status-refused: #ff4f5e;
 }
 
 @theme inline {
@@ -34,17 +29,12 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
 
-  --color-reliability-confirmed: var(--reliability-confirmed);
-  --color-reliability-probable: var(--reliability-probable);
-  --color-reliability-unverified: var(--reliability-unverified);
-  --color-reliability-contradictory: var(--reliability-contradictory);
+  --color-status-pending: var(--status-pending);
+  --color-status-approved: var(--status-approved);
+  --color-status-refused: var(--status-refused);
 
-  --color-visibility-private: var(--visibility-private);
-  --color-visibility-shared: var(--visibility-shared);
-  --color-visibility-restricted: var(--visibility-restricted);
-
-  --font-display: var(--font-dossier-display);
-  --font-sans: var(--font-dossier-sans);
+  --font-display: var(--font-terminal-display);
+  --font-sans: var(--font-terminal-mono);
 }
 
 html {
@@ -52,9 +42,13 @@ html {
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image:
+    linear-gradient(rgba(57, 255, 106, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 106, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
   color: var(--foreground);
-  font-family: var(--font-dossier-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-terminal-mono), ui-monospace, monospace;
 }
 
 ::selection {
@@ -67,8 +61,43 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-dossier-display), "Courier New", ui-monospace, monospace;
-  letter-spacing: 0.02em;
+  font-family: var(--font-terminal-display), "Courier New", ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 24px rgba(57, 255, 106, 0.08), 0 0 2px rgba(57, 255, 106, 0.25);
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 6px rgba(57, 255, 106, 0.35);
+  }
+  50% {
+    text-shadow: 0 0 14px rgba(57, 255, 106, 0.7);
+  }
+}
+
+.glow-text {
+  animation: pulse-glow 3.5s ease-in-out infinite;
+}
+
+@keyframes blink-cursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink::after {
+  content: "_";
+  animation: blink-cursor 1s step-end infinite;
+  color: var(--accent);
 }
 
 /* scrollbars sobres, coherents avec le theme sombre */

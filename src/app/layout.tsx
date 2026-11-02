@@ -1,28 +1,28 @@
 import type { Metadata } from "next";
-import { Special_Elite, Inter } from "next/font/google";
+import { Share_Tech_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const dossierDisplay = Special_Elite({
-  variable: "--font-dossier-display",
+const terminalDisplay = Share_Tech_Mono({
+  variable: "--font-terminal-display",
   subsets: ["latin"],
   weight: "400",
 });
 
-const dossierSans = Inter({
-  variable: "--font-dossier-sans",
+const terminalMono = JetBrains_Mono({
+  variable: "--font-terminal-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Blackbook",
-  description: "Carnet personnel — usage prive, hors-RP.",
+  title: "BLACKLINE",
+  description: "Tablette de gestion de communaute — usage RP, donnees fictives.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fr"
-      className={`${dossierDisplay.variable} ${dossierSans.variable} h-full antialiased`}
+      className={`${terminalDisplay.variable} ${terminalMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
     </html>

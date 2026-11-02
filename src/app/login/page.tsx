@@ -9,14 +9,21 @@ export default async function LoginPage({
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-lg border border-border bg-panel p-8">
-        <p className="font-display text-xl tracking-widest text-accent">BLACKBOOK</p>
+      <div className="w-full max-w-sm rounded-lg border border-accent/30 bg-panel p-8 shadow-glow">
+        <p className="font-display text-xl tracking-widest text-accent glow-text">BLACKLINE</p>
         <p className="mt-2 text-sm text-muted">
-          Carnet personnel confidentiel. Acces reserve — usage prive, hors-RP.
+          Tablette privee — acces reserve aux membres de la communaute. Donnees fictives, usage RP
+          uniquement.
         </p>
         <div className="mt-6">
           <LoginForm callbackUrl={callbackUrl} />
         </div>
+        <p className="mt-6 text-center text-xs text-muted/70">
+          Premier lancement ?{" "}
+          <a href="/setup" className="text-accent hover:underline">
+            Creer le compte proprietaire
+          </a>
+        </p>
       </div>
     </main>
   );

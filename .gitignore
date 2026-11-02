@@ -43,5 +43,9 @@ next-env.d.ts
 # base de donnees locale et fichiers uploades
 /prisma/dev.db
 /prisma/dev.db-journal
+/prisma/dev.db.blackbook-backup
 /storage/uploads/*
 !/storage/uploads/.gitkeep
+
+# client Prisma genere (regenere par `prisma generate`)
+/src/generated/

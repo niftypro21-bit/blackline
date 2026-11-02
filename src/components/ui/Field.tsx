@@ -22,7 +22,7 @@ export function Field({
         {label}
       </label>
       {children}
-      {error ? <p className="text-xs text-reliability-contradictory">{error}</p> : null}
+      {error ? <p className="text-xs text-status-refused">{error}</p> : null}
     </div>
   );
 }

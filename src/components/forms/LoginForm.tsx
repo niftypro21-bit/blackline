@@ -23,9 +23,9 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
           autoComplete="current-password"
         />
       </Field>
-      {error ? <p className="text-sm text-reliability-contradictory">{error}</p> : null}
+      {error ? <p className="text-sm text-status-refused">{error}</p> : null}
       <Button type="submit" variant="primary" disabled={pending} className="mt-2 justify-center">
-        {pending ? "Connexion..." : "Ouvrir le carnet"}
+        {pending ? "Connexion..." : "Se connecter"}
       </Button>
     </form>
   );

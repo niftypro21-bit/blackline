@@ -2,6 +2,10 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { SetupForm } from "@/components/forms/SetupForm";
 
+// Cette page doit verifier la base a chaque requete (et non au moment du build) :
+// sans ca, l'hebergeur la fige en page statique et sert toujours le resultat du build.
+export const dynamic = "force-dynamic";
+
 export default async function SetupPage() {
   const existingCount = await prisma.user.count();
   if (existingCount > 0) redirect("/login");

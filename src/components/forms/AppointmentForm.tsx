@@ -5,23 +5,33 @@ import { createAppointment } from "@/lib/actions/appointments";
 import { Field, Input, Select, Textarea } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 
-export function AppointmentForm({ groups }: { groups: { id: string; name: string }[] }) {
+export function AppointmentForm({
+  groups,
+  fixedGroupId,
+}: {
+  groups: { id: string; name: string }[];
+  fixedGroupId?: string;
+}) {
   const [error, formAction, pending] = useActionState(createAppointment, undefined);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <Field label="Groupe" htmlFor="groupId">
-        <Select id="groupId" name="groupId" required defaultValue="">
-          <option value="" disabled>
-            Choisir un groupe
-          </option>
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
+      {fixedGroupId ? (
+        <input type="hidden" name="groupId" value={fixedGroupId} />
+      ) : (
+        <Field label="Groupe" htmlFor="groupId">
+          <Select id="groupId" name="groupId" required defaultValue="">
+            <option value="" disabled>
+              Choisir un groupe
             </option>
-          ))}
-        </Select>
-      </Field>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      )}
       <Field label="Titre" htmlFor="title">
         <Input id="title" name="title" type="text" required />
       </Field>

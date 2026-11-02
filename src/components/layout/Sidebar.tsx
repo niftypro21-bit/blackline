@@ -6,6 +6,7 @@ type NavUser = { name: string; isOwner: boolean; showAccounting: boolean };
 function navItems(user: NavUser) {
   const items = [
     { href: "/", label: "Tableau de bord" },
+    { href: "/groupes", label: "Groupes" },
     { href: "/messages", label: "Messages" },
     { href: "/inventaire", label: "Marche noir" },
     { href: "/commandes", label: "Commandes" },
